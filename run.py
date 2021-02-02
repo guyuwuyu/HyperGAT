@@ -9,6 +9,7 @@ from sklearn.utils import class_weight
 import random
 import warnings
 import os
+import csv
 
 warnings.filterwarnings('ignore') 
 
@@ -28,6 +29,7 @@ parser.add_argument('--valid_portion', type=float, default=0.1, help='split the 
 parser.add_argument('--rand', type=int, default=1234, help='rand_seed')
 parser.add_argument('--normalization', action='store_true', help='add a normalization layer to the end')
 parser.add_argument('--use_LDA', action='store_true', help='use LDA to construct semantic hyperedge')
+parser.add_argument('--save_file', default='results.csv', help='save file name')
 
 
 
@@ -35,15 +37,19 @@ args = parser.parse_args()
 print(args)
 
 
-SEED = args.rand
-torch.manual_seed(SEED)
-torch.cuda.manual_seed(SEED)
-np.random.seed(SEED)
-random.seed(SEED)
+#SEED = args.rand
+#torch.manual_seed(SEED)
+#torch.cuda.manual_seed(SEED)
+#np.random.seed(SEED)
+#random.seed(SEED)
+def set_seed(SEED):
+    torch.manual_seed(SEED)
+    torch.cuda.manual_seed(SEED)
+    np.random.seed(SEED)
+    random.seed(SEED)
 
 
-
-def main():
+def main(SEED):
 	doc_content_list, doc_train_list, doc_test_list, vocab_dic, labels_dic, max_num_sentence, keywords_dic, class_weights = read_file(args.dataset, args.use_LDA)
 
 	pre_trained_weight = []
@@ -75,9 +81,30 @@ def main():
 		valid_detail, valid_acc = test_model(model, valid_data, args, False)
 		detail, acc = test_model(model, test_data, args, False)
 		print('Validation Accuracy:\t%.4f, Test Accuracy:\t%.4f'% (valid_acc,acc))
-		
-		
+	return valid_acc,acc
+
+def data_write_csv(filename, data):
+
+	with open(filename, "a", encoding="utf-8", newline='') as w:
+         _writer = csv.writer(w)
+         _writer.writerow(data)
 
 if __name__ == '__main__':
 
-	main()
+	results = []
+	for seed in [i for i in range(10)]:  # 10->1
+		print("Seed:", seed)
+		set_seed(args.rand)
+		val_acc,test_acc = main(seed)
+		results.append(test_acc)
+		print('acc array:', results)
+
+	results = np.array(results)
+
+	data_write_csv(args.save_file,
+				   [
+					   f"{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}, args.dataset:{args.dataset}, results.mean():{results.mean():.5f}," \
+					   f" results.std():{results.std():.5f}" \
+					   f"args.lr:{args.lr},args.l2: {args.l2}, seed: {seed}"] + \
+				   [','.join(str(i) for i in results)])
+	print(f"saved successfully in {args.save_file}")

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="66987da3-4d07-40dd-87f4-e79053b10b6a" name="hgat">
+        <fileTransfer accessType="SFTP" host="219.223.189.198" port="22" sshConfigId="2f142122-46fb-499b-b10f-f9272d4b87c0" sshConfig="hgat">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
